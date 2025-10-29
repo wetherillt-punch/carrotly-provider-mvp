@@ -1,16 +1,48 @@
-# Carrotly Provider Onboarding MVP
+cd ~/Desktop/carrotly-provider-mvp
 
-A React + TypeScript prototype for the Carrotly Provider Onboarding Platform.
+cat > README.md << 'EOF'
+# 🥕 Carrotly Provider MVP
 
-## 🚀 Quick Start
+Provider onboarding platform for Carrotly - A comprehensive multi-step wizard for healthcare providers to create their profiles.
 
-### Prerequisites
-- Node.js 18+ installed
-- npm or yarn
+## 🚀 Live Demo
 
-### Installation
+**[View Live App →](https://carrotly-provider-5iz8teine-tim-wetherills-projects.vercel.app)**
 
+## ✨ Features
+
+- **5-Step Onboarding Wizard**
+  - Basic Information (practice name, contact)
+  - Location & Address
+  - Photo Upload (primary + gallery)
+  - Service Selection
+  - Optional Details (licenses, certifications, insurance)
+
+- **Profile Preview** - See how patients view your profile
+- **Provider Dashboard** - Stats, bookings, and analytics
+- **Fully Responsive** - Works on desktop, tablet, and mobile
+- **Form Validation** - Real-time error checking with React Hook Form
+- **Type-Safe** - Built with TypeScript for reliability
+
+## 🛠 Tech Stack
+
+- **React 18** - Modern UI framework
+- **TypeScript** - Type safety and better DX
+- **Vite** - Lightning fast build tool
+- **Tailwind CSS** - Utility-first styling
+- **React Router** - Client-side routing
+- **React Hook Form** - Performant form handling
+- **Lucide React** - Beautiful icons
+- **Recharts** - Data visualization
+
+## 📦 Installation
 ```bash
+# Clone the repository
+git clone https://github.com/wetherillt-punch/carrotly-provider-mvp.git
+
+# Navigate to project
+cd carrotly-provider-mvp
+
 # Install dependencies
 npm install
 
@@ -18,139 +50,35 @@ npm install
 npm run dev
 ```
 
-The app will open at `http://localhost:5173`
-
-### Build for Production
-
+## 🏗 Build for Production
 ```bash
 npm run build
 npm run preview
 ```
 
-## 📁 Project Structure
+## 📱 Screenshots
 
-```
-src/
-├── components/
-│   ├── common/          # Reusable UI components
-│   ├── onboarding/      # Onboarding wizard components
-│   ├── dashboard/       # Dashboard components
-│   └── profile/         # Profile components
-├── data/                # Mock data and dropdown options
-├── hooks/               # Custom React hooks
-├── pages/               # Page components
-├── types/               # TypeScript type definitions
-├── App.tsx              # Main app component with routing
-└── main.tsx             # Entry point
+*Coming soon*
 
-```
+## 🧪 Testing
 
-## 🎨 Features
+Open the app and test the full onboarding flow:
+1. Enter practice information
+2. Add location details
+3. Upload photos
+4. Select services
+5. Add optional credentials
+6. View profile preview
+7. Access dashboard
 
-- ✅ Multi-step onboarding wizard (4 required steps + 1 optional)
-- ✅ Multi-select provider types
-- ✅ Standardized service selection
-- ✅ Photo upload with preview
-- ✅ Optional fields (collapsed by default)
-- ✅ Profile preview (patient view)
-- ✅ Dashboard with mock stats
-- ✅ localStorage persistence
+## 🚀 Deployment
 
-## 🔧 Tech Stack
-
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **React Router** - Navigation
-- **React Hook Form** - Form handling
-- **Lucide React** - Icons
-- **Recharts** - Charts
-
-## 📝 Usage
-
-### Onboarding Flow
-
-1. **Start** → Landing page
-2. **Step 1: Basics** → Practice name, provider types, contact info
-3. **Step 2: Location** → Address (+ optional suite/website)
-4. **Step 3: Photos** → Upload 1-5 photos
-5. **Step 4: Services** → Select from standardized lists
-6. **Step 5: Optional** → Licensing, certifications, insurance (skippable)
-7. **Complete** → Celebration screen
-8. **Preview** → See patient view of profile
-9. **Dashboard** → Control center with stats
-
-### Testing
-
-Try different provider types to see different service lists:
-- Medical → Annual Physical, Sick Visit, etc.
-- Dental → Cleaning, Filling, Crown, etc.
-- Cosmetic → Botox, Fillers, etc.
-- Fitness → Personal Training, Group Classes, etc.
-- Massage → Swedish, Deep Tissue, etc.
-- Mental Health → Therapy, Counseling, etc.
-- Skincare → Facials, Treatments, etc.
-
-## 📦 Deployment
-
-### Vercel (Recommended)
-
-1. Push code to GitHub
-2. Import project in Vercel
-3. Deploy (auto-detects Vite)
-4. Done! Get shareable link
-
-### Netlify
-
-```bash
-npm run build
-# Drag dist/ folder to Netlify
-```
-
-## 💾 Data Persistence
-
-All data is saved to browser localStorage:
-- Key: `carrotly_provider`
-- Persists between sessions
-- Clear with: `localStorage.clear()`
-
-## 🎯 MVP Scope
-
-**What's Real:**
-- ✅ All forms work
-- ✅ Photo upload and preview
-- ✅ Navigation and routing
-- ✅ Data validation
-- ✅ Responsive design
-
-**What's Mocked:**
-- 🎭 Dashboard stats (fake numbers)
-- 🎭 Appointments (sample data)
-- 🎭 Reviews (sample data)
-- 🎭 No real backend
-- 🎭 No real authentication
-- 🎭 No real payment processing
-
-## 🐛 Troubleshooting
-
-**Port already in use:**
-```bash
-# Kill process on port 5173
-kill -9 $(lsof -ti:5173)
-```
-
-**Dependencies not installing:**
-```bash
-rm -rf node_modules package-lock.json
-npm install
-```
-
-**Build errors:**
-```bash
-npm run build -- --mode development
-```
+Deployed automatically to Vercel on every push to `main` branch.
 
 ## 📄 License
 
-MIT - Built for Carrotly
+MIT
+
+## 👨‍💻 Author
+
+Tim Wetherill
