@@ -1,0 +1,176 @@
+import React, { useState } from 'react';
+import { Info } from 'lucide-react';
+
+interface StepLocationProps {
+  data: any;
+  onNext: (data: any) => void;
+  onBack: () => void;
+}
+
+const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
+];
+
+export const StepLocation: React.FC<StepLocationProps> = ({ data, onNext, onBack }) => {
+  const [street, setStreet] = useState(data.streetAddress || '');
+  const [suite, setSuite] = useState(data.suite || '');
+  const [city, setCity] = useState(data.city || '');
+  const [state, setState] = useState(data.state || '');
+  const [zip, setZip] = useState(data.zipCode || '');
+  const [website, setWebsite] = useState(data.website || '');
+  const [errors, setErrors] = useState<any>({});
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newErrors: any = {};
+    if (!street.trim()) newErrors.street = 'Street address is required';
+    if (!city.trim()) newErrors.city = 'City is required';
+    if (!state) newErrors.state = 'State is required';
+    if (!zip.trim()) newErrors.zip = 'ZIP code is required';
+    if (website && !/^https?:\/\/.+/.test(website)) {
+      newErrors.website = 'Please enter a valid URL (include https://)';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    onNext({
+      streetAddress: street,
+      suite,
+      city,
+      state,
+      zipCode: zip,
+      website,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Step 2 of 7: Location</h2>
+        <p className="text-gray-600">Where are you located? Patients will use this to find you.</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">Street Address *</label>
+        <input
+          type="text"
+          value={street}
+          onChange={(e) => setStreet(e.target.value)}
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+            errors.street ? 'border-red-500' : 'border-gray-300'
+          }`}
+          placeholder="123 Main Street"
+        />
+        {errors.street && <p className="mt-1 text-sm text-red-600">{errors.street}</p>}
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Suite or Unit Number <span className="text-gray-400 font-normal">(Optional)</span>
+        </label>
+        <input
+          type="text"
+          value={suite}
+          onChange={(e) => setSuite(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          placeholder="Suite 201"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
+          <input
+            type="text"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+              errors.city ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="Bozeman"
+          />
+          {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">State *</label>
+          <select
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+              errors.state ? 'border-red-500' : 'border-gray-300'
+            }`}
+          >
+            <option value="">Select...</option>
+            {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">ZIP Code *</label>
+          <input
+            type="text"
+            value={zip}
+            onChange={(e) => setZip(e.target.value)}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+              errors.zip ? 'border-red-500' : 'border-gray-300'
+            }`}
+            placeholder="59715"
+            maxLength={5}
+          />
+          {errors.zip && <p className="mt-1 text-sm text-red-600">{errors.zip}</p>}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Practice Website <span className="text-gray-400 font-normal">(Optional)</span>
+        </label>
+        <input
+          type="url"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${
+            errors.website ? 'border-red-500' : 'border-gray-300'
+          }`}
+          placeholder="https://yourpractice.com"
+        />
+        {errors.website && <p className="mt-1 text-sm text-red-600">{errors.website}</p>}
+      </div>
+
+      <div className="bg-teal-50 border-l-4 border-teal-500 rounded-r-lg p-4">
+        <div className="flex gap-3">
+          <Info className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-teal-900">
+            This address will be shown to patients when they book appointments
+          </p>
+        </div>
+      </div>
+
+      <div className="flex justify-between pt-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+        >
+          ← Back
+        </button>
+        <button
+          type="submit"
+          className="px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg"
+        >
+          Continue to Photos →
+        </button>
+      </div>
+    </form>
+  );
+};

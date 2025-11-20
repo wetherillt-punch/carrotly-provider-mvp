@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Findr Health Brand Colors */
+:root {
+  --findr-teal: #14b8a6;
+  --findr-cyan: #06b6d4;
+}
+
+/* Override default focus rings to use teal */
+@layer base {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--findr-teal) !important;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1) !important;
+  }
+  
+  /* Remove any orange focus styles */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--findr-teal);
+    outline-offset: 2px;
+  }
+}
+
+/* Custom focus ring utility */
+@layer utilities {
+  .focus-teal:focus {
+    outline: none;
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+  }
+}
+
+/* Ensure no orange anywhere */
+*:focus {
+  outline-color: var(--findr-teal) !important;
+}

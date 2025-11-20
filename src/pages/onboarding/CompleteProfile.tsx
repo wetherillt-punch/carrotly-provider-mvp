@@ -1,0 +1,1155 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Check, Upload, X, Camera, Search, Pencil, AlertCircle, FileText, Users, Plus } from 'lucide-react';
+import FindrLogo from '../../components/branding/FindrLogo';
+import { submitProviderProfile } from '../../services/api';
+
+
+const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
+];
+
+const providerTypes = [
+  { id: 'medical', label: 'Medical', icon: '🏥' },
+  { id: 'dental', label: 'Dental', icon: '🦷' },
+  { id: 'cosmetic', label: 'Cosmetic', icon: '✨' },
+  { id: 'fitness', label: 'Fitness', icon: '💪' },
+  { id: 'massage', label: 'Massage', icon: '💆' },
+  { id: 'mentalHealth', label: 'Mental Health', icon: '🧠' },
+  { id: 'skincare', label: 'Skincare', icon: '🧴' },
+];
+
+interface Service {
+  id: string;
+  name: string;
+  category: string;
+  duration: number;
+  price: number;
+}
+
+interface TeamMember {
+  id: string;
+  photo: string;
+  name: string;
+  title: string;
+  bio: string;
+}
+
+const allServices: Record<string, Service[]> = {
+  medical: [
+    { id: 'annual-physical', name: 'Annual Physical Exam', category: 'Preventive', duration: 45, price: 150 },
+    { id: 'wellness-checkup', name: 'Wellness Checkup', category: 'Preventive', duration: 30, price: 125 },
+    { id: 'sick-visit', name: 'Sick Visit', category: 'Acute Care', duration: 20, price: 100 },
+    { id: 'flu-vax', name: 'Flu Vaccination', category: 'Vaccinations', duration: 15, price: 40 },
+    { id: 'covid-vax', name: 'COVID-19 Vaccination', category: 'Vaccinations', duration: 15, price: 50 },
+  ],
+  dental: [
+    { id: 'dental-cleaning', name: 'Dental Cleaning', category: 'Preventive', duration: 60, price: 120 },
+    { id: 'filling', name: 'Filling', category: 'Restorative', duration: 60, price: 200 },
+    { id: 'crown', name: 'Crown', category: 'Restorative', duration: 120, price: 1200 },
+  ],
+  cosmetic: [
+    { id: 'botox', name: 'Botox Injection', category: 'Injectables', duration: 30, price: 400 },
+    { id: 'facial', name: 'Facial Treatment', category: 'Skin', duration: 60, price: 150 },
+  ],
+  fitness: [
+    { id: 'personal-training', name: 'Personal Training Session', category: 'Training', duration: 60, price: 100 },
+    { id: 'nutrition', name: 'Nutrition Consultation', category: 'Nutrition', duration: 45, price: 75 },
+  ],
+};
+
+export default function CompleteProfile() {
+  const navigate = useNavigate();
+  const [isVerified, setIsVerified] = useState(false);
+
+  const [practiceName, setPracticeName] = useState('');
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+
+  const [street, setStreet] = useState('');
+  const [suite, setSuite] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zip, setZip] = useState('');
+  const [website, setWebsite] = useState('');
+
+  const [photos, setPhotos] = useState<string[]>([]);
+
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [customizedServices, setCustomizedServices] = useState<Record<string, { price: number; duration: number }>>({});
+  const [editingService, setEditingService] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState('');
+  const [editDuration, setEditDuration] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [licenseNumber, setLicenseNumber] = useState('');
+  const [licenseState, setLicenseState] = useState('');
+  const [yearsExperience, setYearsExperience] = useState('');
+  const [education, setEducation] = useState('');
+
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [addingMember, setAddingMember] = useState(false);
+  const [newMemberPhoto, setNewMemberPhoto] = useState('');
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberTitle, setNewMemberTitle] = useState('');
+  const [newMemberBio, setNewMemberBio] = useState('');
+
+  const [signature, setSignature] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
+
+  const [errors, setErrors] = useState<any>({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const verified = sessionStorage.getItem('verified');
+    const businessData = sessionStorage.getItem('businessData');
+    
+    if (verified && businessData) {
+      setIsVerified(true);
+      try {
+        const data = JSON.parse(businessData);
+        setPracticeName(data.name || '');
+        setEmail(data.email || '');
+        
+        const addressParts = (data.address || '').split(',');
+        if (addressParts.length >= 3) {
+          setStreet(addressParts[0].trim());
+          setCity(addressParts[1].trim());
+          const stateZip = addressParts[2].trim().split(' ');
+          if (stateZip.length >= 2) {
+            setState(stateZip[0]);
+            setZip(stateZip[1]);
+          }
+        }
+        setPhone('(406) 555-0123');
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    }
+  }, []);
+
+  const toggleType = (typeId: string) => {
+    setSelectedTypes(prev =>
+      prev.includes(typeId) ? prev.filter(t => t !== typeId) : [...prev, typeId]
+    );
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      if (photos.length >= 5) return;
+      if (file.size > 5 * 1024 * 1024) return;
+      if (!file.type.startsWith('image/')) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setPhotos(prev => [...prev, e.target!.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTeamPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Photo must be under 2MB');
+      return;
+    }
+    if (!file.type.startsWith('image/')) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setNewMemberPhoto(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const addTeamMember = () => {
+    if (!newMemberName.trim() || !newMemberTitle.trim()) {
+      alert('Name and title are required');
+      return;
+    }
+
+    const newMember: TeamMember = {
+      id: Date.now().toString(),
+      photo: newMemberPhoto,
+      name: newMemberName,
+      title: newMemberTitle,
+      bio: newMemberBio,
+    };
+
+    setTeamMembers(prev => [...prev, newMember]);
+    setAddingMember(false);
+    setNewMemberPhoto('');
+    setNewMemberName('');
+    setNewMemberTitle('');
+    setNewMemberBio('');
+  };
+
+  const removeTeamMember = (id: string) => {
+    setTeamMembers(prev => prev.filter(m => m.id !== id));
+  };
+
+  const cancelAddMember = () => {
+    setAddingMember(false);
+    setNewMemberPhoto('');
+    setNewMemberName('');
+    setNewMemberTitle('');
+    setNewMemberBio('');
+  };
+
+  const toggleService = (serviceId: string) => {
+    setSelectedServices(prev =>
+      prev.includes(serviceId) ? prev.filter(id => id !== serviceId) : [...prev, serviceId]
+    );
+  };
+
+  const getAvailableServices = () => {
+    return selectedTypes.flatMap(type => allServices[type] || []);
+  };
+
+  const startEdit = (serviceId: string) => {
+    const service = getAvailableServices().find(s => s.id === serviceId);
+    const customized = customizedServices[serviceId];
+    
+    if (service) {
+      setEditingService(serviceId);
+      setEditPrice((customized?.price || service.price).toString());
+      setEditDuration((customized?.duration || service.duration).toString());
+    }
+  };
+
+  const saveEdit = () => {
+    if (!editingService) return;
+    
+    const price = parseFloat(editPrice);
+    const duration = parseInt(editDuration);
+    
+    if (isNaN(price) || price <= 0) {
+      alert('Please enter a valid price');
+      return;
+    }
+    
+    if (isNaN(duration) || duration <= 0) {
+      alert('Please enter a valid duration');
+      return;
+    }
+    
+    setCustomizedServices(prev => ({
+      ...prev,
+      [editingService]: { price, duration }
+    }));
+    
+    setEditingService(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingService(null);
+    setEditPrice('');
+    setEditDuration('');
+  };
+
+  const getServiceDetails = (service: Service) => {
+    const customized = customizedServices[service.id];
+    return {
+      price: customized?.price || service.price,
+      duration: customized?.duration || service.duration,
+      isCustomized: !!customized
+    };
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  const newErrors: any = {};
+  
+  if (!practiceName.trim()) newErrors.practiceName = 'Required';
+  if (selectedTypes.length === 0) newErrors.providerTypes = 'Select at least one';
+  if (!phone.trim()) newErrors.phone = 'Required';
+  if (!email.trim()) newErrors.email = 'Required';
+  if (!street.trim()) newErrors.street = 'Required';
+  if (!city.trim()) newErrors.city = 'Required';
+  if (!state) newErrors.state = 'Required';
+  if (!zip.trim()) newErrors.zip = 'Required';
+  if (photos.length === 0) newErrors.photos = 'Upload at least 1 photo';
+  if (selectedServices.length < 2) newErrors.services = 'Select at least 2 services';
+  if (!signature.trim()) newErrors.signature = 'Signature required';
+  if (!agreedToTerms) newErrors.terms = 'Must agree to terms';
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const businessDataStr = sessionStorage.getItem('businessData');
+    const businessData = businessDataStr ? JSON.parse(businessDataStr) : {};
+
+    const servicesData = getAvailableServices()
+      .filter(s => selectedServices.includes(s.id))
+      .map(service => {
+        const details = getServiceDetails(service);
+        return {
+          id: service.id,
+          name: service.name,
+          category: service.category,
+          duration: details.duration,
+          price: details.price
+        };
+      });
+
+    const profileData = {
+      placeId: businessData.placeId,
+      practiceName,
+      providerTypes: selectedTypes,
+      phone,
+      email,
+      address: { street, suite, city, state, zip },
+      website,
+      photos,
+      services: servicesData,
+      optionalInfo: {
+        licenseNumber,
+        licenseState,
+        yearsExperience: yearsExperience ? parseInt(yearsExperience) : undefined,
+        education
+      },
+      teamMembers,
+      agreement: {
+        signature,
+        title: '',
+        agreedDate: new Date().toISOString(),
+        version: '2025'
+      }
+    };
+
+    const result = await submitProviderProfile(profileData);
+
+    if (result.providerId) {
+      sessionStorage.setItem('providerId', result.providerId);
+    }
+
+    sessionStorage.removeItem('businessData');
+    sessionStorage.removeItem('selectedPlace');
+    localStorage.removeItem('onboardingData');
+
+    navigate('/complete');
+
+  } catch (error: any) {
+    console.error('Submission error:', error);
+    alert('Failed to submit: ' + (error.message || 'Unknown error'));
+    setLoading(false);
+  }
+};
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50">
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <FindrLogo size="sm" showText={true} />
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {isVerified && (
+          <div className="mb-6 bg-green-50 border-l-4 border-green-500 rounded-r-lg p-4">
+            <div className="flex gap-3">
+              <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-green-900">Verified! ✓</p>
+                <p className="text-sm text-green-800">We've pre-filled your information. Review and complete the remaining sections.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
+            <p className="text-gray-600">Fill out all sections below. Fields marked with * are required.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-12">
+          {/* SECTION 1: THE BASICS */}
+            <div className="pb-8 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">1. The Basics</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Practice or Business Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={practiceName}
+                    onChange={(e) => setPracticeName(e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                      errors.practiceName ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="e.g., Smith Family Medicine"
+                  />
+                  {errors.practiceName && <p className="mt-1 text-sm text-red-600">{errors.practiceName}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Provider Type(s) * <span className="text-gray-500 font-normal">(Select all that apply)</span>
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {providerTypes.map((type) => (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => toggleType(type.id)}
+                        className={`relative p-3 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${
+                          selectedTypes.includes(type.id)
+                            ? 'border-teal-500 bg-teal-50'
+                            : 'border-gray-200 hover:border-teal-300 bg-white'
+                        }`}
+                      >
+                        <span className="text-2xl">{type.icon}</span>
+                        <span className="text-sm font-medium text-gray-900">{type.label}</span>
+                        {selectedTypes.includes(type.id) && (
+                          <Check className="absolute top-1 right-1 w-4 h-4 text-teal-600" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {errors.providerTypes && <p className="mt-2 text-sm text-red-600">{errors.providerTypes}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Phone *</label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                        errors.phone ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="(406) 555-0123"
+                    />
+                    {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                        errors.email ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="contact@practice.com"
+                    />
+                    {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 2: LOCATION */}
+            <div className="pb-8 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">2. Location</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Street Address *</label>
+                  <input
+                    type="text"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                      errors.street ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="123 Main Street"
+                  />
+                  {errors.street && <p className="mt-1 text-sm text-red-600">{errors.street}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Suite/Unit <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={suite}
+                    onChange={(e) => setSuite(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                    placeholder="Suite 201"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                        errors.city ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Bozeman"
+                    />
+                    {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">State *</label>
+                    <select
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                        errors.state ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select...</option>
+                      {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">ZIP *</label>
+                    <input
+                      type="text"
+                      value={zip}
+                      onChange={(e) => setZip(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 ${
+                        errors.zip ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="59715"
+                      maxLength={5}
+                    />
+                    {errors.zip && <p className="mt-1 text-sm text-red-600">{errors.zip}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Website <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                    placeholder="https://yourpractice.com"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 3: PHOTOS */}
+            <div className="pb-8 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">3. Photos *</h2>
+              
+              <div className="space-y-4">
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-teal-400 transition"
+                  onClick={() => document.getElementById('photoInput')?.click()}
+                >
+                  <input
+                    id="photoInput"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    disabled={photos.length >= 5}
+                  />
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-700 font-medium mb-1">Click to upload photos</p>
+                  <p className="text-sm text-gray-500">{photos.length}/5 photos • Max 5MB each</p>
+                </div>
+
+                {photos.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {photos.map((photo, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={photo}
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                        />
+                        {index === 0 && (
+                          <div className="absolute top-1 left-1 bg-teal-500 text-white text-xs px-2 py-0.5 rounded">
+                            Primary
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {errors.photos && <p className="text-sm text-red-600">{errors.photos}</p>}
+              </div>
+            </div>
+
+            {/* SECTION 4: SERVICES */}
+            <div className="pb-8 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">4. Services * (Select at least 2)</h2>
+              
+              {selectedTypes.length === 0 ? (
+                <p className="text-gray-500">Select provider types above to see available services</p>
+              ) : (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                    placeholder="Search services..."
+                  />
+
+                  <p className="text-sm text-gray-600">{selectedServices.length} services selected</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2">
+                    {getAvailableServices()
+                      .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .map(service => {
+                        const isSelected = selectedServices.includes(service.id);
+                        const details = getServiceDetails(service);
+                        const isEditing = editingService === service.id;
+
+                        return (
+                          <div
+                            key={service.id}
+                            className={`p-4 border-2 rounded-lg transition ${
+                              isSelected ? 'border-teal-500 bg-teal-50' : 'border-gray-200'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleService(service.id)}
+                                className="flex items-start gap-2 text-left flex-1"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  readOnly
+                                  className="mt-1 w-4 h-4 text-teal-600 rounded"
+                                />
+                                <div>
+                                  <h4 className="font-medium text-gray-900">{service.name}</h4>
+                                </div>
+                              </button>
+                              {isSelected && !isEditing && (
+                                <button
+                                  type="button"
+                                  onClick={() => startEdit(service.id)}
+                                  className="p-1 text-gray-400 hover:text-teal-600 transition"
+                                  title="Edit pricing"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+
+                            {isEditing ? (
+                              <div className="mt-2 space-y-2 pl-6">
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="number"
+                                    value={editDuration}
+                                    onChange={(e) => setEditDuration(e.target.value)}
+                                    placeholder="Duration"
+                                    className="w-20 px-2 py-1 text-sm border border-gray-300 rounded"
+                                  />
+                                  <span className="text-sm text-gray-600">min</span>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="text-sm text-gray-600">$</span>
+                                  <input
+                                    type="number"
+                                    value={editPrice}
+                                    onChange={(e) => setEditPrice(e.target.value)}
+                                    placeholder="Price"
+                                    className="w-20 px-2 py-1 text-sm border border-gray-300 rounded"
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={saveEdit}
+                                    className="px-3 py-1 text-xs bg-teal-500 text-white rounded hover:bg-teal-600"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={cancelEdit}
+                                    className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className={`text-sm pl-6 ${details.isCustomized ? 'text-teal-600 font-medium' : 'text-gray-600'}`}>
+                                {details.duration} min • ${details.price}
+                                {details.isCustomized && <span className="text-xs ml-1">(edited)</span>}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                  {errors.services && <p className="text-sm text-red-600">{errors.services}</p>}
+                </div>
+              )}
+            </div>
+
+            {/* SECTION 5: OPTIONAL WITH TEAM */}
+            <div className="pb-8 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">5. Optional Details</h2>
+              <p className="text-gray-600 mb-6">Add credentials and team member profiles to build trust (all optional)</p>
+              
+              <div className="space-y-8">
+                {/* Credentials */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Professional Credentials</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">License Number</label>
+                        <input
+                          type="text"
+                          value={licenseNumber}
+                          onChange={(e) => setLicenseNumber(e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                          placeholder="MT12345"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">License State</label>
+                        <select
+                          value={licenseState}
+                          onChange={(e) => setLicenseState(e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                        >
+                          <option value="">Select...</option>
+                          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Years Experience</label>
+                        <input
+                          type="number"
+                          value={yearsExperience}
+                          onChange={(e) => setYearsExperience(e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                          placeholder="10"
+                          min="0"
+                          max="99"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Education & Training</label>
+                      <textarea
+                        value={education}
+                        onChange={(e) => setEducation(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                        rows={3}
+                        placeholder="MD from Johns Hopkins University..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* TEAM MEMBERS */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <Users className="w-5 h-5 text-teal-600" />
+                        Team Members
+                      </h3>
+                      <p className="text-sm text-gray-600">Add photos and bios of your team to build patient trust</p>
+                    </div>
+                    {!addingMember && (
+                      <button
+                        type="button"
+                        onClick={() => setAddingMember(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Member
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Existing Members */}
+                  {teamMembers.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      {teamMembers.map((member) => (
+                        <div key={member.id} className="border-2 border-gray-200 rounded-lg p-4 relative">
+                          <button
+                            type="button"
+                            onClick={() => removeTeamMember(member.id)}
+                            className="absolute top-2 right-2 p-1 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                          
+                          <div className="flex gap-4">
+                            {member.photo ? (
+                              <img
+                                src={member.photo}
+                                alt={member.name}
+                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+                                <Users className="w-8 h-8 text-gray-400" />
+                              </div>
+                            )}
+                            
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{member.name}</h4>
+                              <p className="text-sm text-teal-600">{member.title}</p>
+                              {member.bio && (
+                                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{member.bio}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add Form */}
+                  {addingMember && (
+                    <div className="border-2 border-teal-300 bg-teal-50 rounded-lg p-6">
+                      <h4 className="font-semibold text-gray-900 mb-4">Add Team Member</h4>
+                      
+                      <div className="space-y-4">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition border-2 border-dashed border-gray-400 overflow-hidden"
+                            onClick={() => document.getElementById('teamPhotoInput')?.click()}
+                          >
+                            {newMemberPhoto ? (
+                              <img src={newMemberPhoto} alt="Team member" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="text-center">
+                                <Camera className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                                <p className="text-xs text-gray-500">Click to upload</p>
+                              </div>
+                            )}
+                          </div>
+                          <input
+                            id="teamPhotoInput"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleTeamPhotoUpload}
+                            className="hidden"
+                          />
+                          <p className="text-xs text-gray-500 mt-2">Max 2MB</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Name *</label>
+                            <input
+                              type="text"
+                              value={newMemberName}
+                              onChange={(e) => setNewMemberName(e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                              placeholder="Dr. Jane Smith"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Title/Role *</label>
+                            <input
+                              type="text"
+                              value={newMemberTitle}
+                              onChange={(e) => setNewMemberTitle(e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                              placeholder="Nurse Practitioner"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Bio (Optional)</label>
+                          <textarea
+                            value={newMemberBio}
+                            onChange={(e) => setNewMemberBio(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                            rows={3}
+                            placeholder="Brief professional background..."
+                            maxLength={300}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">{newMemberBio.length}/300</p>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={addTeamMember}
+                            className="flex-1 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition font-semibold"
+                          >
+                            Add Member
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelAddMember}
+                            className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {teamMembers.length === 0 && !addingMember && (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-2">No team members added yet</p>
+                      <p className="text-sm text-gray-500">Adding team members helps build patient trust</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+           {/* SECTION 6: AGREEMENT */}
+            <div className="pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">6. Provider Agreement *</h2>
+              
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6 max-h-64 overflow-y-auto">
+                <h3 className="font-semibold text-gray-900 mb-3">Provider Participation Agreement Summary</h3>
+                <div className="text-sm text-gray-700 space-y-2">
+                  <p>By signing below, you agree to:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Maintain required professional insurance ($1M/$3M)</li>
+                    <li>Comply with HIPAA and state regulations</li>
+                    <li>Provide accurate service listings and pricing</li>
+                    <li>Platform fee: 15% + Stripe processing fees</li>
+                    <li>30-day termination notice</li>
+                    <li>Binding arbitration for disputes</li>
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={() => setShowAgreementModal(true)}
+                    className="text-teal-600 hover:underline font-medium mt-4 flex items-center gap-1"
+                  >
+                    <FileText className="w-4 h-4" />
+                    View full agreement (16 sections)
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Type Your Full Legal Name to Sign *
+                  </label>
+                  <input
+                    type="text"
+                    value={signature}
+                    onChange={(e) => setSignature(e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 font-serif text-lg ${
+                      errors.signature ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="John Smith"
+                  />
+                  {errors.signature && <p className="mt-1 text-sm text-red-600">{errors.signature}</p>}
+                </div>
+
+                <label className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="mt-1 w-5 h-5 text-teal-600 rounded focus:ring-teal-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I have read and agree to the Provider Participation Agreement, including all 16 sections covering independent contractor status, insurance requirements, payment terms, HIPAA compliance, and dispute resolution. *
+                  </span>
+                </label>
+                {errors.terms && <p className="text-sm text-red-600">{errors.terms}</p>}
+
+                {signature && agreedToTerms && (
+                  <div className="bg-green-50 border-l-4 border-green-500 rounded-r-lg p-4">
+                    <p className="text-sm text-green-900">
+                      <strong>Signature:</strong> {signature} • <strong>Date:</strong> {new Date().toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* SUBMIT BUTTON */}
+            <div className="pt-6 border-t border-gray-200">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-xl font-semibold text-lg hover:from-teal-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+              >
+                {loading ? 'Submitting...' : 'Submit for Approval →'}
+              </button>
+              <p className="text-center text-sm text-gray-600 mt-4">
+                You'll receive an email within 24-48 hours with your approval status
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* AGREEMENT MODAL */}
+      {showAgreementModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Provider Participation Agreement</h2>
+              <button
+                onClick={() => setShowAgreementModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-6 h-6 text-gray-600" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="prose prose-sm max-w-none text-gray-700 space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Full Agreement (16 Sections)</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">1. Purpose & Relationship</h4>
+                    <p>Provider acknowledges independent-contractor status and that Findr Health provides no medical advice or referrals.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">2. Provider Obligations</h4>
+                    <p>Provider confirms required credentials, insurance ($1M/$3M general liability), and compliance with HIPAA, FTC, and state law.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">3. Listings, Pricing & Subscriptions</h4>
+                    <p>Provider agrees to accurate listings, clear fees, and ROSCA/FTC compliance for recurring offers.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">4. Payments & Settlement</h4>
+                    <p>Provider appoints Findr Health as limited payment collection agent. Platform fee: 15% of booking value plus Stripe processing fees (2.9% + $0.30).</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">5. Payment Reserves & Refunds</h4>
+                    <p>Provider authorizes delayed release, reserves, and set-offs for refunds/chargebacks.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">6. Cancellations & Refunds</h4>
+                    <p>Provider acknowledges refund transparency and Findr Health refund authority; state-law overrides apply.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">7. Data Protection & HIPAA</h4>
+                    <p>Provider will protect PHI; Business Associate Agreement applies if PHI is exchanged; breach notice within 10 business days required.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">8. Marketing & Conduct</h4>
+                    <p>Provider agrees to TCPA/CAN-SPAM consent requirements and professional conduct standards.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">9. Reviews & Ratings</h4>
+                    <p>Provider will not block, buy, or manipulate reviews; Consumer Review Fairness Act and FTC Fake Reviews Rule apply.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">10. Insurance & Indemnification</h4>
+                    <p>Provider accepts required insurance limits and indemnification duties.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">11. Intellectual Property</h4>
+                    <p>Provider grants display license for content; acknowledges Findr Health IP; unlawful content may be removed.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">12. Term & Termination</h4>
+                    <p>30-day termination notice required; immediate suspension for fraud/violation; refunds for unserved bookings.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">13. Limitation of Liability</h4>
+                    <p>Liability cap equal to fees retained by Findr Health in prior 12 months (exceptions for gross negligence/fraud apply).</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">14. Dispute Resolution</h4>
+                    <p>AAA arbitration with small-claims carve-out and 30-day opt-out right; mass-claims staged processing.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">15. Confidentiality & Accessibility</h4>
+                    <p>Provider agrees to confidentiality and ADA/WCAG cooperation for accessibility.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900">16. Amendments & Notices</h4>
+                    <p>30-day prospective updates via email/dashboard; right to terminate before effective date.</p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    Version 2025 | Effective Date: {new Date().toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setShowAgreementModal(false)}
+                className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-3 rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-600 transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
