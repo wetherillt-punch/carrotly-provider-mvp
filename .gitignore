@@ -29,3 +29,10 @@ dist-ssr
 .env.local
 .env.development
 .env.test
+
+# Environment variables
+.env
+.env.production
+.env.local
+.env.development
+.env.test
