@@ -136,7 +136,7 @@ export default function EditProfile() {
             <img 
               src="/findr-logo.svg" 
               alt="Findr Health" 
-              className="h-24 w-auto"
+              className="h-40 w-auto"
             />
           </div>
         </div>
