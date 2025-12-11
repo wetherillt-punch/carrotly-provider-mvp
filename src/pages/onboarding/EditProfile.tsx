@@ -133,21 +133,11 @@ export default function EditProfile() {
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 relative">
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                <defs>
-                  <linearGradient id="findrGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{ stopColor: '#14b8a6', stopOpacity: 1 }} />
-                    <stop offset="100%" style={{ stopColor: '#06b6d4', stopOpacity: 1 }} />
-                  </linearGradient>
-                </defs>
-                <path d="M 30 0 Q 50 20, 70 0 L 70 30 Q 50 10, 30 30 Z" fill="url(#findrGradient)" />
-                <path d="M 100 30 Q 80 50, 100 70 L 70 70 Q 90 50, 70 30 Z" fill="url(#findrGradient)" />
-                <path d="M 70 100 Q 50 80, 30 100 L 30 70 Q 50 90, 70 70 Z" fill="url(#findrGradient)" />
-                <path d="M 0 70 Q 20 50, 0 30 L 30 30 Q 10 50, 30 70 Z" fill="url(#findrGradient)" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-900">findr™</span>
+            <img 
+              src="/findr-logo.svg" 
+              alt="Findr Health" 
+              className="h-24 w-auto"
+            />
           </div>
         </div>
       </div>
