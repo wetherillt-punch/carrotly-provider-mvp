@@ -21,12 +21,12 @@ export default function Complete() {
           
           <div className="space-y-6">
             <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-lg">1</span>
+              <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <span className="text-primary-600 font-bold text-lg">1</span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-5 h-5 text-blue-600" />
+                  <Clock className="w-5 h-5 text-primary-600" />
                   <h3 className="font-bold text-gray-900">Profile Review</h3>
                 </div>
                 <p className="text-gray-600">Our team will review your profile within <strong>24-48 hours</strong></p>
@@ -34,12 +34,12 @@ export default function Complete() {
             </div>
 
             <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-lg">2</span>
+              <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <span className="text-primary-600 font-bold text-lg">2</span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Shield className="w-5 h-5 text-blue-600" />
+                  <Shield className="w-5 h-5 text-primary-600" />
                   <h3 className="font-bold text-gray-900">Verification</h3>
                 </div>
                 <p className="text-gray-600">We'll verify your credentials and contact information</p>
@@ -47,12 +47,12 @@ export default function Complete() {
             </div>
 
             <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-lg">3</span>
+              <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <span className="text-primary-600 font-bold text-lg">3</span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <CheckCheck className="w-5 h-5 text-blue-600" />
+                  <CheckCheck className="w-5 h-5 text-primary-600" />
                   <h3 className="font-bold text-gray-900">Approval Notification</h3>
                 </div>
                 <p className="text-gray-600">Once approved, you'll receive an email confirmation</p>

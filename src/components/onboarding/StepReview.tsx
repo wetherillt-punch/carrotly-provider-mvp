@@ -191,7 +191,7 @@ export const StepReview: React.FC<StepReviewProps> = ({ data, onNext, onBack }) 
             <h3 className="font-semibold text-green-800 text-lg mb-2">Profile Information Complete!</h3>
             <p className="text-sm text-green-700">
               Your profile looks great! Next, you'll review and sign the Provider Participation Agreement. 
-              After approval, you'll be able to receive bookings from patients on the Carrotly platform.
+              After approval, you'll be able to receive bookings from patients on the Findr Health platform.
             </p>
           </div>
         </div>

@@ -158,7 +158,7 @@ export const StepAgreement: React.FC<StepAgreementProps> = ({ data, onNext, onBa
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Provider Participation Agreement</h2>
         <p className="text-gray-600">
-          Please review and initial each section of the agreement. This is required to join the Carrotly platform.
+          Please review and initial each section of the agreement. This is required to join the Findr Health platform.
         </p>
       </div>
 
@@ -284,7 +284,7 @@ export const StepAgreement: React.FC<StepAgreementProps> = ({ data, onNext, onBa
 
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Final Acknowledgment & Signature</h3>
           <p className="text-sm text-gray-700 mb-4">
-            By signing, you confirm all required sections are initialed and you agree to the Carrotly Provider Participation Agreement (Version 2025).
+            By signing, you confirm all required sections are initialed and you agree to the Findr Health Provider Participation Agreement (Version 2025).
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -330,10 +330,10 @@ export const StepAgreement: React.FC<StepAgreementProps> = ({ data, onNext, onBa
       )}
 
       {/* Download Agreement Link */}
-      <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-6 p-3 bg-primary-50 border border-primary-200 rounded-lg">
         <div className="flex items-center text-sm">
           <FileText className="w-4 h-4 text-teal-600 mr-2 flex-shrink-0" />
-          <p className="text-blue-900">
+          <p className="text-primary-900">
             <a 
               href="/Carrotly_Provider_Agreement_Fast_Sign_Fillable.pdf" 
               target="_blank" 

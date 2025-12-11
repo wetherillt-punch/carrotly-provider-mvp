@@ -54,13 +54,26 @@ export default function SearchBusiness() {
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
-          <div className="flex flex-col items-center gap-2">
-            <img 
-              src="/findr-logo.svg" 
-              alt="Findr Health" 
-              className="h-32 w-auto"
-            />
-            <p className="text-gray-600 font-medium">Provider Onboarding</p>
+          <div className="inline-flex flex-col items-center">
+            <div className="w-20 h-20 mb-4 relative">
+              <svg viewBox="0 0 100 100" className="w-full h-full">
+                <defs>
+                  <linearGradient id="findrGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{ stopColor: '#14b8a6', stopOpacity: 1 }} />
+                    <stop offset="100%" style={{ stopColor: '#06b6d4', stopOpacity: 1 }} />
+                  </linearGradient>
+                </defs>
+                <path d="M 30 0 Q 50 20, 70 0 L 70 30 Q 50 10, 30 30 Z" fill="url(#findrGradient)" />
+                <path d="M 100 30 Q 80 50, 100 70 L 70 70 Q 90 50, 70 30 Z" fill="url(#findrGradient)" />
+                <path d="M 70 100 Q 50 80, 30 100 L 30 70 Q 50 90, 70 70 Z" fill="url(#findrGradient)" />
+                <path d="M 0 70 Q 20 50, 0 30 L 30 30 Q 10 50, 30 70 Z" fill="url(#findrGradient)" />
+              </svg>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-4xl font-bold text-gray-900">findr</span>
+              <span className="text-xs text-teal-600 font-semibold align-super">™</span>
+            </div>
+            <p className="text-gray-600 mt-2 font-medium">Provider Onboarding</p>
           </div>
         </div>
 
