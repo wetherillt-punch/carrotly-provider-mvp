@@ -56,7 +56,7 @@ export default function SearchBusiness() {
         <div className="text-center mb-8">
           <div className="flex flex-col items-center gap-2">
             <img 
-              src="/findr-logo.svg" 
+              src="/findr-logo.svg"  
               alt="Findr Health" 
               className="h-32 w-auto"
             />
