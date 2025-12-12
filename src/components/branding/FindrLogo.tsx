@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface FindrLogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   showText?: boolean;
 }
 
@@ -10,6 +10,7 @@ export default function FindrLogo({ size = 'md', showText = true }: FindrLogoPro
     sm: 'h-10',
     md: 'h-16',
     lg: 'h-24'
+    xl: 'h-40' 
   };
 
   return (
