@@ -9,8 +9,8 @@ export default function FindrLogo({ size = 'md', showText = true }: FindrLogoPro
   const sizes = {
     sm: 'h-10',
     md: 'h-16',
-    lg: 'h-24'
-    xl: 'h-40' 
+    lg: 'h-24',
+    xl: 'h-40',
   };
 
   return (
